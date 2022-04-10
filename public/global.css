@@ -14,19 +14,26 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 }
 
-.flowmap-container {
-	width: 100vw;
-	height: 100vh;
+
+.tooltip {
+	max-height: 200px;
+	overflow-y: auto;
+	font-size: 10px;
 }
-.light .mapboxgl-map {
-	filter: grayscale(0.85);
-	opacity: 0.5;
+.tooltip table {
+	border-spacing: 0;
+	border-collapse: collapse;
 }
-.dark {
-	background: #000;
+.tooltip tr {
+	line-height: 1.2;
 }
-.dark .mapboxgl-map {
-	filter: grayscale(0.1) invert(1) hue-rotate(-180deg) saturate(0.5)
-	contrast(0.9);
-	opacity: 0.3;
+.tooltip th {
+	margin:0;
+	padding:5px;
+	text-align: left;
+}
+
+.tooltip td {
+	padding:0;
+	margin:0;
 }

@@ -20,3 +20,8 @@ To build a production version:
 npm run build
 ```
 
+
+## Attributions
+
+
+[Explosion by Vectorstall from NounProject.com](https://thenounproject.com/icon/explosion-3679623/)

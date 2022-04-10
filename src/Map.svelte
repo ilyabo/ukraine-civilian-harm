@@ -1,10 +1,6 @@
 <script>
   import { onMount, onDestroy, setContext } from 'svelte';
   import { mapbox, key } from './mapbox.js';
-  // import {fetchData} from "@flowmap.gl/examples-common";
-  // import {Deck} from "@deck.gl/core";
-  // import {getViewStateForLocations} from "@flowmap.gl/data";
-  // import {FlowmapLayer} from "@flowmap.gl/layers";
 
   setContext(key, {
      getMap: () => map,
@@ -14,8 +10,8 @@
   let mapboxContainer;
   let deckCanvas;
   let map;
-  let deck;
-  let flowmapData;
+  let civHarmDataById;
+
   const bbox = [[15.82,40.95],[45.64,56.03]]
 
   onMount(() => {
@@ -29,8 +25,13 @@
     map.on('load', () => {
       const layers = map.getStyle().layers;
       map.setPaintProperty('satellite', 'raster-opacity', 0.5)
+      map.loadImage('./explosion.png', (error, image) => {
+        if (error) throw error;
+        // add image to the active style and make it SDF-enabled
+        map.addImage('explosion', image, { sdf: true });
+      });
 
-      const firstLabelLayer = layers.find((layer) => layer.id.endsWith('-label'));
+      const beforeId = (layers.find((layer) => layer.id.endsWith('-label')))?.id;
 
       Promise.all([
         fetch('/data/country-outline.json').then(body => body.json()),
@@ -38,11 +39,12 @@
         fetch('/data/ukr-civharm-2022-04-10.json').then(body => body.json())
       ])
       .then(([countryOutline, civHarm]) => {
+        civHarmDataById = civHarm.reduce((m,d) => { m.set(d.id, d); return m; }, new Map());
+
         map.addSource('country', {
           type: 'geojson',
           data: countryOutline
         });
-        let beforeId = firstLabelLayer?.id;
         map.addLayer({
           id: 'country-line1',
           type: 'line',
@@ -75,9 +77,11 @@
             features: civHarm.map(d => ({
               type: 'Feature',
               geometry: {
-                id: d.id,
                 type: 'Point',
                 coordinates: [d.longitude, d.latitude],
+              },
+              properties: {
+                id: d.id,
               }
             }))
           },
@@ -85,18 +89,7 @@
           clusterMaxZoom: 14, // Max zoom to cluster points on
           clusterRadius: 50  // Radius of each cluster when clustering points (defaults to 50)
         });
-        // map.addLayer({
-        //   id: 'civ-harm-points',
-        //   type: 'circle',
-        //   source: 'civ-harm',
-        //   layout: {},
-        //   paint: {
-        //     'circle-color': '#f34',
-        //     'circle-opacity': 1.0,
-        //     'circle-radius': 5.0,
-        //   },
-        // }, firstLabelLayer?.id);
-        //
+
 
 
         map.addLayer({
@@ -106,10 +99,6 @@
           filter: ['has', 'point_count'],
           paint: {
             // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
-            // with three steps to implement three types of circles:
-            //   * Blue, 20px circles when point count is less than 100
-            //   * Yellow, 30px circles when point count is between 100 and 750
-            //   * Pink, 40px circles when point count is greater than or equal to 750
             'circle-color': [
               'step',
               ['get', 'point_count'],
@@ -146,14 +135,19 @@
 
         map.addLayer({
           id: 'unclustered-point',
-          type: 'circle',
+          type: 'symbol',
           source: 'civ-harm',
           filter: ['!', ['has', 'point_count']],
           paint: {
-            'circle-color': '#11b4da',
-            'circle-radius': 10,
-            'circle-stroke-width': 1,
-            'circle-stroke-color': '#fff'
+            'icon-color': '#11b4da',
+            'icon-halo-color': '#fff',
+            'icon-halo-width': 4,
+            'icon-halo-blur': 1,
+          },
+          layout: {
+            'icon-image': 'explosion',
+            'icon-size': 1,
+            'icon-allow-overlap': true,
           }
         }, beforeId);
 
@@ -182,21 +176,38 @@
         // description HTML from its properties.
         map.on('click', 'unclustered-point', (e) => {
           const coordinates = e.features[0].geometry.coordinates.slice();
-          // const mag = e.features[0].properties.mag;
+          const d = civHarmDataById.get(e.features[0].properties.id);
 
           // Ensure that if the map is zoomed out such that
           // multiple copies of the feature are visible, the
           // popup appears over the copy being pointed to.
-          while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-          }
+          // while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+          //   coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+          // }
 
           new mapbox.Popup()
           .setLngLat(coordinates)
-          .setHTML(
-                  `magnitude: ${1}`
-          )
+          .setHTML(`
+          <div class="tooltip">
+          <table>
+            <tr><th>Date</th><td>${d.date}</td></tr>
+            <tr><th>Location</th><td>${d.location}</td></tr>
+            <tr><th>Description</th><td>${d.description}</td></tr>
+            <tr><th>Sources</th><td>
+                ${d.sources?.map((s,i) =>
+                  `<a href="${s.path}" target="_blank">${`Source #${i+1}`}</a>`
+                ).join(' ')}
+            </td></tr>
+            ${d.filters?.map(f => `<tr><th>${f.key}</th><td>${f.value}</td></tr>`).join('')}
+          </table></div>
+          `)
           .addTo(map);
+        });
+        map.on('mouseenter', 'unclustered-point', () => {
+          map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', 'unclustered-point', () => {
+          map.getCanvas().style.cursor = '';
         });
 
         map.on('mouseenter', 'clusters', () => {
@@ -219,10 +230,7 @@
 </script>
 
 <svelte:head>
-  <link
-      rel="stylesheet"
-      href="https://unpkg.com/mapbox-gl/dist/mapbox-gl.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/mapbox-gl/dist/mapbox-gl.css" />
 </svelte:head>
 
 <div class="container">
@@ -231,7 +239,6 @@
       <slot />
     {/if}
   </div>
-<!--  <canvas bind:this={deckCanvas} id="deck-canvas"></canvas>-->
 </div>
 
 <style>
@@ -247,7 +254,5 @@
   #mapbox-container {
     opacity: 0.75;
   }
-  #deck-canvas {
-    mix-blend-mode: screen;
-  }
+
 </style>
