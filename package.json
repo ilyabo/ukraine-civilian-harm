@@ -1,6 +1,6 @@
 {
-  "name": "@flowmap.gl/svelte-app",
-  "version": "8.0.0-alpha.23",
+  "name": "ukraine-civilian-harm",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "build": "rollup -c",
