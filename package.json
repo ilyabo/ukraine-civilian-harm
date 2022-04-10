@@ -11,6 +11,7 @@
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-node-resolve": "^11.0.0",
     "@rollup/plugin-replace": "^3.0.1",
+    "d3": "^7.4.3",
     "dotenv": "^10.0.0",
     "mapbox-gl": "^2.6.1",
     "rollup": "^2.3.4",

@@ -18,7 +18,7 @@ body {
 .tooltip {
 	max-height: 200px;
 	overflow-y: auto;
-	font-size: 10px;
+	font-size: 11px;
 }
 .tooltip table {
 	border-spacing: 0;

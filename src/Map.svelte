@@ -1,18 +1,30 @@
 <script>
+  import DoubleRangeSlider from './DoubleRangeSlider.svelte';
   import { onMount, onDestroy, setContext } from 'svelte';
   import { mapbox, key } from './mapbox.js';
+  import * as d3 from 'd3';
 
   setContext(key, {
      getMap: () => map,
   });
 
+  const formatDate = d3.timeFormat('%Y-%m-%d');
+
+  let start;
+  let end;
+  let timeExtent;
+  function toTime(x) {
+    const [a,b] = timeExtent.map(d => d.getTime());
+    return a + x * (b - a);
+  }
 
   let mapboxContainer;
   let deckCanvas;
   let map;
+  let civHarmData;
   let civHarmDataById;
 
-  const bbox = [[15.82,40.95],[45.64,56.03]]
+  const bbox = [[16.82,39.0],[45.64,56.03]]
 
   onMount(() => {
     map = new mapbox.Map({
@@ -39,7 +51,27 @@
         fetch('/data/ukr-civharm-2022-04-10.json').then(body => body.json())
       ])
       .then(([countryOutline, civHarm]) => {
-        civHarmDataById = civHarm.reduce((m,d) => { m.set(d.id, d); return m; }, new Map());
+        civHarmData = civHarm.map(d => ({
+          ...d,
+          date: new Date(d.date)
+        }));
+        timeExtent = d3.extent(civHarmData, d => d.date);
+        civHarmDataById = civHarmData.reduce((m,d) => { m.set(d.id, d); return m; }, new Map());
+
+        map.addSource('civ-harm', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: []
+          },
+          // filter: ["==", ["get", "featureclass"], "cape"],
+          cluster: true,
+          clusterMaxZoom: 14, // Max zoom to cluster points on
+          clusterRadius: 50  // Radius of each cluster when clustering points (defaults to 50)
+        });
+        updateTimeFilter();
+
+
 
         map.addSource('country', {
           type: 'geojson',
@@ -70,33 +102,13 @@
         );
 
 
-        map.addSource('civ-harm', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: civHarm.map(d => ({
-              type: 'Feature',
-              geometry: {
-                type: 'Point',
-                coordinates: [d.longitude, d.latitude],
-              },
-              properties: {
-                id: d.id,
-              }
-            }))
-          },
-          cluster: true,
-          clusterMaxZoom: 14, // Max zoom to cluster points on
-          clusterRadius: 50  // Radius of each cluster when clustering points (defaults to 50)
-        });
-
-
 
         map.addLayer({
           id: 'clusters',
           type: 'circle',
           source: 'civ-harm',
-          filter: ['has', 'point_count'],
+          filter: ['==', 'cluster', true],
+          // filter: ['has', 'point_count'],
           paint: {
             // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
             'circle-color': [
@@ -117,7 +129,6 @@
             ],
             'circle-stroke-width': 1,
             'circle-stroke-color': '#fff'
-
           }
         }, beforeId);
 
@@ -125,7 +136,8 @@
           id: 'cluster-count',
           type: 'symbol',
           source: 'civ-harm',
-          filter: ['has', 'point_count'],
+          filter: ['==', 'cluster', true],
+          // filter: ['has', 'point_count'],
           layout: {
             'text-field': '{point_count_abbreviated}',
             'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
@@ -137,7 +149,8 @@
           id: 'unclustered-point',
           type: 'symbol',
           source: 'civ-harm',
-          filter: ['!', ['has', 'point_count']],
+          // filter: ['!', ['has', 'point_count']],
+          filter: ['!=', 'cluster', true],
           paint: {
             'icon-color': '#11b4da',
             'icon-halo-color': '#fff',
@@ -170,43 +183,42 @@
           );
         });
 
-        // When a click event occurs on a feature in
-        // the unclustered-point layer, open a popup at
-        // the location of the feature, with
-        // description HTML from its properties.
+        let popup;
+        // map.on('close-popup', () => {
+        //   if (popup) {
+        //     popup.remove();
+        //     popup = undefined;
+        //   }
+        // });
+
         map.on('click', 'unclustered-point', (e) => {
+          map.getCanvas().style.cursor = 'pointer';
           const coordinates = e.features[0].geometry.coordinates.slice();
           const d = civHarmDataById.get(e.features[0].properties.id);
 
-          // Ensure that if the map is zoomed out such that
-          // multiple copies of the feature are visible, the
-          // popup appears over the copy being pointed to.
-          // while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-          //   coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-          // }
-
-          new mapbox.Popup()
-          .setLngLat(coordinates)
-          .setHTML(`
-          <div class="tooltip">
-          <table>
-            <tr><th>Date</th><td>${d.date}</td></tr>
-            <tr><th>Location</th><td>${d.location}</td></tr>
-            <tr><th>Description</th><td>${d.description}</td></tr>
-            <tr><th>Sources</th><td>
-                ${d.sources?.map((s,i) =>
-                  `<a href="${s.path}" target="_blank">${`Source #${i+1}`}</a>`
-                ).join(' ')}
-            </td></tr>
-            ${d.filters?.map(f => `<tr><th>${f.key}</th><td>${f.value}</td></tr>`).join('')}
-          </table></div>
-          `)
-          .addTo(map);
+          popup = new mapbox.Popup()
+            .setLngLat(coordinates)
+            .setHTML(`
+            <div class="tooltip">
+            <table>
+              <tr><th>Date</th><td>${formatDate(d.date)}</td></tr>
+              <tr><th>Location</th><td>${d.location}</td></tr>
+              <tr><th>Description</th><td>${d.description}</td></tr>
+              <tr><th>Sources</th><td>
+                  ${d.sources?.map((s,i) =>
+                    `<a href="${s.path}" target="_blank">${`Source #${i+1}`}</a>`
+                  ).join(' ')}
+              </td></tr>
+              ${d.filters?.map(f => `<tr><th>${f.key}</th><td>${f.value}</td></tr>`).join('')}
+            </table></div>
+            `)
+            .addTo(map);
         });
         map.on('mouseenter', 'unclustered-point', () => {
           map.getCanvas().style.cursor = 'pointer';
         });
         map.on('mouseleave', 'unclustered-point', () => {
+          // map.fire('close-popup')
           map.getCanvas().style.cursor = '';
         });
 
@@ -226,6 +238,39 @@
     if (map) map.remove();
   });
 
+  function updateTimeFilter() {
+    // console.log(start, end)
+    if (map) {
+      const startTime = toTime(start);
+      const endTime = toTime(end);
+      map.getSource('civ-harm').setData({
+        type: 'FeatureCollection',
+        features: civHarmData
+          .filter(d => {
+            const t = d.date.getTime();
+            return startTime <= t && t <= endTime;
+          })
+        .map(d => ({
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [d.longitude, d.latitude],
+          },
+          properties: {
+            id: d.id,
+          }
+        }))
+      })
+      // const filters = ['>=', 'date', toTime(start)];
+      // map.setFilter('unclustered-point', filters);
+      // map.setFilter('clusters', filters);
+      // map.setFilter('cluster-count', filters);
+    }
+  }
+
+  $: start, updateTimeFilter();
+  $: end, updateTimeFilter();
+
 
 </script>
 
@@ -241,7 +286,41 @@
   </div>
 </div>
 
+<div class="time-slider-box">
+  {#if timeExtent}
+  <div class="labels">
+    <div class="label">{formatDate(toTime(start))}</div>
+    <div class="spacer"/>
+    <div class="label">{formatDate(toTime(end))}</div>
+  </div>
+  <DoubleRangeSlider bind:start bind:end />
+  {/if}
+</div>
+
 <style>
+  .time-slider-box {
+    position: absolute;
+    color: #fff;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 30px 40px 30px;
+    background: rgba(50, 50, 60, 0.5);
+    border-radius: 5px;
+  }
+  .time-slider-box .labels {
+    color: #209ed3;
+    display: flex;
+    font-size: 14px;
+    text-shadow: 0 0 3px #000;
+  }
+  .time-slider-box .labels .label {
+    background: rgba(0,0,0,0.4);
+  }
+  .time-slider-box .labels .spacer {
+    flex-grow: 1;
+  }
+
   div.container {
     width: 100%;
     height: 100%;
