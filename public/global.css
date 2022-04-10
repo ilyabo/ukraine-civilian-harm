@@ -16,6 +16,11 @@ body {
 
 a, a:visited {
 	color: #209ed3;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
 }
 
 .tooltip {

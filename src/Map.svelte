@@ -286,14 +286,6 @@
   </div>
 </div>
 
-<div class="title-box">
-  <h1>Civilian Harm in Ukraine</h1>
-  <p>
-    Incidents of civilian harm in Ukraine during the Russian invasion in 2022
-  </p>
-    <div>Data source: <a href="https://ukraine.bellingcat.com/" target="_blank">Bellingcat</a></div>
-    <div>Code: <a href="https://github.com/ilyabo/ukraine-civilian-harm/" target="_blank">GitHub repo</a></div>
-</div>
 
 <div class="time-slider-box">
   {#if timeExtent}
@@ -307,24 +299,6 @@
 </div>
 
 <style>
-
-  .title-box {
-    position: absolute;
-    color: #fff;
-    left: 0;
-    top: 0;
-    padding: 10px;
-    background: rgba(50, 50, 60, 0.75);
-    border-bottom-right-radius: 10px;
-    max-width: 175px;
-  }
-  .title-box h1 {
-    font-size: 13px;
-  }
-  .title-box p, .title-box div {
-    font-size: 10px;
-  }
-
   .time-slider-box {
     position: absolute;
     color: #fff;
@@ -332,10 +306,12 @@
     left: 0;
     right: 0;
     padding: 20px 30px 40px 30px;
-    background: rgba(50, 50, 60, 0.5);
+    background: rgba(20,20,30,0.75);
+    box-shadow: 0px 0px 1px 1px rgba(100,100,120,0.75);
   }
   .time-slider-box .labels {
-    color: #209ed3;
+    color: #fff;
+    margin-bottom: 5px;
     display: flex;
     font-size: 14px;
     text-shadow: 0 0 3px #000;
