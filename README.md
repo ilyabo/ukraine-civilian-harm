@@ -1,11 +1,11 @@
-# Flowmap.gl example with Svelte JS
+# Civilian Harm in Ukraine
+Incidents of civilian harm in Ukraine during the Russian invasion in 2022
 
-This example shows how Flowmap.gl can be used in a Svelte app.
-
+Data source: [Bellingcat](https://ukraine.bellingcat.com/)
 
 ## Usage
 
-To run this example, you need a [Mapbox token](http://visgl.github.io/react-map-gl/docs/get-started/mapbox-tokens).
+To run this example, you need a access Mapbox token.
 Rename `.env.example` into `.env` and add your Mapbox token there.
 
 
@@ -24,4 +24,4 @@ npm run build
 ## Attributions
 
 
-[Explosion by Vectorstall from NounProject.com](https://thenounproject.com/icon/explosion-3679623/)
+[Explosion icon by Vectorstall from NounProject.com](https://thenounproject.com/icon/explosion-3679623/)
