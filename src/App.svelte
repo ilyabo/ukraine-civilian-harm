@@ -22,9 +22,16 @@
     </div>
     <section id="info-body">
         <p class="desc">
-            Incidents of civilian harm in Ukraine during the Russian invasion in 2022
+            Incidents that have resulted in potential civilian impact or harm since Russia began its
+            invasion of Ukraine in 2022.
+            The incidents have been
+            <a href="https://ukraine.bellingcat.com/" target="_blank">collected by Bellingcat researchers</a>.
+            Included in the map are instances where civilian areas and infrastructure have been
+            damaged or destroyed, where the presence of civilian injuries are visible and/or there
+            is the presence of immobile civilian bodies.
         </p>
-        <div>Data source: <a href="https://ukraine.bellingcat.com/" target="_blank">Bellingcat</a></div>
+        <div>See also: <a href="https://observablehq.com/@ilyabo/bellingcat-civilian-harm-in-ukraine-beeswarm-timeline" target="_blank">by weapon and area type</a></div>
+        <div>Data: <a href="https://ukraine.bellingcat.com/" target="_blank">Bellingcat</a></div>
         <div>Code: <a href="https://github.com/ilyabo/ukraine-civilian-harm/" target="_blank">GitHub repo</a></div>
     </section>
 </div>
@@ -38,7 +45,7 @@
         border-radius: 5px;
         padding: 10px;
         position: absolute;
-        max-width: 210px;
+        max-width: 220px;
         top: 10px;
         left: 10px;
         box-shadow: 0px 0px 1px 1px rgba(100,100,120,0.75);
