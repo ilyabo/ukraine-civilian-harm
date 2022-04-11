@@ -48,12 +48,13 @@
       Promise.all([
         fetch('/data/country-outline.json').then(body => body.json()),
         // fetch('/data/adm1-outlines.json').then(body => body.json()),
-        fetch('/data/ukr-civharm-2022-04-10.json').then(body => body.json())
+        fetch('/data/ukr-civharm-2022-04-11.json').then(body => body.json())
       ])
       .then(([countryOutline, civHarm]) => {
         civHarmData = civHarm.map(d => ({
           ...d,
-          date: new Date(d.date)
+          // Dates are off by one day in the JSON exported from the Bellingcat app
+          date: d3.timeDay.offset(new Date(d.date), 1)
         }));
         timeExtent = d3.extent(civHarmData, d => d.date);
         civHarmDataById = civHarmData.reduce((m,d) => { m.set(d.id, d); return m; }, new Map());
