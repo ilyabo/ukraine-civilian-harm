@@ -54,8 +54,7 @@
       .then(([countryOutline, civHarm]) => {
         civHarmData = civHarm.map(d => ({
           ...d,
-          // Dates are off by one day in the JSON exported from the Bellingcat app
-          date: d3.timeDay.offset(parseDate(d.date), 1)
+          date: parseDate(d.date)
         }));
         timeExtent = d3.extent(civHarmData, d => d.date);
         civHarmDataById = civHarmData.reduce((m,d) => { m.set(d.id, d); return m; }, new Map());
