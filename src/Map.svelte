@@ -30,14 +30,18 @@
   onMount(() => {
     map = new mapbox.Map({
       container: mapboxContainer,
-      style: 'mapbox://styles/mapbox/satellite-streets-v11',
+      // style: 'https://demotiles.maplibre.org/style.json',
+      // style: `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v11?access_token=${mapbox.accessToken}`,
+      // style: `https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json`,
+      style: `https://api.maptiler.com/maps/hybrid/style.json?key=${mapbox.maptilerKey}`,
+      // style: 'mapbox://styles/mapbox/satellite-streets-v11',
       center: [(bbox[0][0]+bbox[1][0])/2, (bbox[0][1]+bbox[1][1])/2],
       maxBounds: bbox,
       zoom: 4,
     });
     map.on('load', () => {
       const layers = map.getStyle().layers;
-      map.setPaintProperty('satellite', 'raster-opacity', 0.5)
+      map.setPaintProperty('satellite', 'raster-opacity', 0.65)
       map.loadImage('./explosion.png', (error, image) => {
         if (error) throw error;
         // add image to the active style and make it SDF-enabled
