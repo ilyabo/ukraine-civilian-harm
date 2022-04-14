@@ -8,7 +8,12 @@
      getMap: () => map,
   });
 
-  const formatDate = d3.timeFormat('%Y-%m-%d');
+  const _formatDate = d3.timeFormat('%B %e');
+  // const formatDate = d => {
+  //   const s = _formatDate(d);
+  //   return `${s}${s.endsWith('1') ? 'st' : s.endsWith('2') ? 'nd' : s.endsWith('3') ? 'rd' : 'th'}`;
+  // }
+  const formatDate = _formatDate;
   const parseDate = d3.timeParse('%m/%d/%Y');
 
   let start;
@@ -49,7 +54,7 @@
       Promise.all([
         fetch('/data/country-outline.json').then(body => body.json()),
         // fetch('/data/adm1-outlines.json').then(body => body.json()),
-        fetch('/data/ukr-civharm-2022-04-13.json').then(body => body.json())
+        fetch('/data/ukr-civharm-2022-04-14.json').then(body => body.json())
       ])
       .then(([countryOutline, civHarm]) => {
         civHarmData = civHarm.map(d => ({
