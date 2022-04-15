@@ -4,6 +4,9 @@
   import { mapbox, key } from './mapbox.js';
   import * as d3 from 'd3';
 
+  const INCIDENTS_URL = '/data/ukr-civharm-2022-04-15.json';
+  const COUNTRY_OUTLINE_URL = '/data/country-outline.json';
+
   setContext(key, {
      getMap: () => map,
   });
@@ -52,9 +55,9 @@
       const beforeId = (layers.find((layer) => layer.id.endsWith('-label')))?.id;
 
       Promise.all([
-        fetch('/data/country-outline.json').then(body => body.json()),
+        fetch(COUNTRY_OUTLINE_URL).then(body => body.json()),
         // fetch('/data/adm1-outlines.json').then(body => body.json()),
-        fetch('/data/ukr-civharm-2022-04-14.json').then(body => body.json())
+        fetch(INCIDENTS_URL).then(body => body.json())
       ])
       .then(([countryOutline, civHarm]) => {
         civHarmData = civHarm.map(d => ({
