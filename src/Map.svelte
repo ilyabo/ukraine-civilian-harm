@@ -4,14 +4,14 @@
   import { mapbox, key } from './mapbox.js';
   import * as d3 from 'd3';
 
-  const INCIDENTS_URL = '/data/ukr-civharm-2022-09-13.json';
+  const INCIDENTS_URL = '/data/ukr-civharm-2023-01-21.json';
   const COUNTRY_OUTLINE_URL = '/data/country-outline.json';
 
   setContext(key, {
      getMap: () => map,
   });
 
-  const _formatDate = d3.timeFormat('%B %e');
+  const _formatDate = d3.timeFormat('%B %e, %Y');
   // const formatDate = d => {
   //   const s = _formatDate(d);
   //   return `${s}${s.endsWith('1') ? 'st' : s.endsWith('2') ? 'nd' : s.endsWith('3') ? 'rd' : 'th'}`;
