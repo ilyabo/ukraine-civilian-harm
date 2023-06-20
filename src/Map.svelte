@@ -4,7 +4,7 @@
   import { mapbox, key } from './mapbox.js';
   import * as d3 from 'd3';
 
-  const INCIDENTS_URL = '/data/ukr-civharm-2023-05-08.json';
+  const INCIDENTS_URL = '/data/ukr-civharm-2023-06-20.json';
   const COUNTRY_OUTLINE_URL = '/data/country-outline.json';
 
   setContext(key, {
