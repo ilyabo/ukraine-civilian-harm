@@ -1,10 +1,10 @@
 <script>
-  import DoubleRangeSlider from './DoubleRangeSlider.svelte';
-  import { onMount, onDestroy, setContext } from 'svelte';
-  import { mapbox, key } from './mapbox.js';
   import * as d3 from 'd3';
+  import { onDestroy, onMount, setContext } from 'svelte';
+  import DoubleRangeSlider from './DoubleRangeSlider.svelte';
+  import { key, mapbox } from './mapbox.js';
 
-  const INCIDENTS_URL = '/data/ukr-civharm-2024-01-23.json';
+  const INCIDENTS_URL = '/data/ukr-civharm-2024-06-02.json';
   const COUNTRY_OUTLINE_URL = '/data/country-outline.json';
 
   setContext(key, {
